@@ -8,7 +8,7 @@ const goalLabels: Record<CalorieGoal, string> = {
   maintain: 'Maintain', loseSlow: 'Lose slow', loseStandard: 'Lose standard', gainSlow: 'Gain slow', gainStandard: 'Gain standard',
 };
 
-export default function CalorieNeedsCalculator({ latestWeightKg, profile, onProfile, onApplyGoals }: { latestWeightKg?: number; profile: UserProfile; onProfile: (profile: UserProfile) => void; onApplyGoals: (goals: Goals) => void }) {
+export default function CalorieNeedsCalculator({ latestWeightKg, profile, calorieAdjustment, onProfile, onApplyGoals }: { latestWeightKg?: number; profile: UserProfile; calorieAdjustment?: number; onProfile: (profile: UserProfile) => void; onApplyGoals: (goals: Goals) => void }) {
   const [sex, setSex] = useState<Sex>(profile.sex ?? 'male');
   const [age, setAge] = useState(profile.age?.toString() ?? '30');
   const [heightCm, setHeightCm] = useState(profile.heightCm?.toString() ?? '180');
@@ -24,15 +24,22 @@ export default function CalorieNeedsCalculator({ latestWeightKg, profile, onProf
     if (input.age <= 0 || input.heightCm <= 0 || input.weightKg <= 0) return null;
     const bmr = calculateBmr(input.sex, input.age, input.heightCm, input.weightKg);
     const tdee = bmr * activityMultipliers[input.activityLevel].multiplier;
-    const suggestedCalories = Math.round(goalCalories(tdee, input.goal));
+    const suggestedCalories = Math.round(typeof calorieAdjustment === 'number' ? tdee + calorieAdjustment : goalCalories(tdee, input.goal));
     const ranges = macroRanges(input.weightKg);
     const algorithm = recommendedTargets(input);
+    if (typeof calorieAdjustment === 'number') {
+      const proteinCalories = algorithm.targets.protein * 4;
+      const fatCalories = algorithm.targets.fat * 9;
+      algorithm.targets.calories = suggestedCalories;
+      algorithm.targets.carbs = Math.max(0, Math.round((suggestedCalories - proteinCalories - fatCalories) / 4));
+      algorithm.warning = suggestedCalories < proteinCalories + fatCalories + 200 ? 'Goal-date calories are aggressive; consider a later date or smaller weight change.' : algorithm.warning;
+    }
     return { bmr: Math.round(bmr), tdee: Math.round(tdee), suggestedCalories, ranges, algorithm };
-  }, [sex, age, heightCm, weightKg, activityLevel, goal]);
+  }, [sex, age, heightCm, weightKg, activityLevel, goal, calorieAdjustment]);
 
   return (
     <section className="rounded-3xl bg-white p-5 shadow-soft">
-      <h2 className="text-xl font-bold">Calorie Needs</h2>
+      <h2 className="text-xl font-bold">Calorie Needs</h2>{typeof calorieAdjustment === 'number' ? <p className="mt-1 rounded-2xl bg-clean-50 p-3 text-sm text-clean-800">Using weight goal planner adjustment: {calorieAdjustment >= 0 ? '+' : ''}{calorieAdjustment} kcal/day vs maintenance.</p> : null}
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-sm font-medium text-slate-600">Sex<select className="mt-1 w-full rounded-2xl border p-3" value={sex} onChange={(event) => setSex(event.target.value as Sex)}><option value="male">Male</option><option value="female">Female</option></select></label>
         <label className="text-sm font-medium text-slate-600">Age<input className="mt-1 w-full rounded-2xl border p-3" type="number" min="1" value={age} onChange={(event) => setAge(event.target.value)} /></label>

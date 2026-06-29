@@ -1,0 +1,5 @@
+import { MacroSet } from '@/types';
+const meta = { calories:['Calories','kcal','bg-clean-600'], protein:['Protein','g','bg-sky-500'], carbs:['Carbs','g','bg-amber-500'], fat:['Fat','g','bg-fuchsia-500'] } as const;
+export default function MacroProgress({ totals, goals }: { totals: MacroSet; goals: MacroSet }) {
+ return <div className="grid gap-3 sm:grid-cols-2">{(Object.keys(meta) as (keyof MacroSet)[]).map((k) => { const [label, unit, color] = meta[k]; const pct = Math.min(100, Math.round((totals[k] / goals[k]) * 100)); const remain = Math.max(0, goals[k] - totals[k]); return <div key={k} className="rounded-2xl bg-white p-4 shadow-soft"><div className="flex items-end justify-between"><div><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-bold">{totals[k]}<span className="text-sm font-medium text-slate-400"> / {goals[k]} {unit}</span></p></div><span className="text-sm font-semibold text-clean-700">{remain.toFixed(k==='calories'?0:1)} left</span></div><div className="mt-3 h-3 rounded-full bg-slate-100"><div className={`h-3 rounded-full ${color}`} style={{ width: `${pct}%` }} /></div></div> })}</div>;
+}

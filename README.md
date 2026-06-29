@@ -57,7 +57,7 @@ git push -u origin main
 1. Push the repository to GitHub.
 2. In Vercel, choose **Add New Project**.
 3. Import the GitHub repository.
-4. Keep the default Next.js settings.
+4. Keep the default Next.js settings. This repo also includes `vercel.json` to force the Next.js framework preset and `.next` output directory, which prevents static-site output directory mistakes such as looking for `public` after build.
 5. Click **Deploy**.
 
 ## Limitations

@@ -1,35 +1,46 @@
-import { AppData, FoodEntry, FoodItem, Goals } from '@/types';
-const KEY = 'clean-macro-tracker:v1';
-export const defaultData: AppData = { version: 1, goals: null, customFoods: [], entries: [] };
-export const loadData = (): AppData => {
- if (typeof window === 'undefined') return defaultData;
- try { const raw = localStorage.getItem(KEY); return raw ? { ...defaultData, ...JSON.parse(raw) } : defaultData; } catch { return defaultData; }
-};
-export const saveData = (data: AppData) => { if (typeof window !== 'undefined') localStorage.setItem(KEY, JSON.stringify(data)); };
-export const exportData = (data: AppData) => JSON.stringify(data, null, 2);
-export const importData = (raw: string): AppData => {
- const parsed = JSON.parse(raw) as AppData;
- if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.entries) || !Array.isArray(parsed.customFoods)) throw new Error('This does not look like a Clean Macro Tracker export.');
- return { ...defaultData, ...parsed };
-};
+import { AppData, FoodEntry, FoodItem, Goals, UserProfile, WeightEntry } from '@/types';
+import { defaultData } from './db';
+import { markPending, updateSyncMeta } from './sync';
+
 export type DataAction =
- | { type: 'setGoals'; goals: Goals }
- | { type: 'addEntry'; entry: FoodEntry }
- | { type: 'updateEntry'; entry: FoodEntry }
- | { type: 'deleteEntry'; id: string }
- | { type: 'addCustomFood'; food: FoodItem }
- | { type: 'updateCustomFood'; food: FoodItem }
- | { type: 'replace'; data: AppData }
- | { type: 'reset' };
+  | { type: 'setGoals'; goals: Goals }
+  | { type: 'setProfile'; profile: UserProfile }
+  | { type: 'addEntry'; entry: FoodEntry }
+  | { type: 'updateEntry'; entry: FoodEntry }
+  | { type: 'deleteEntry'; id: string }
+  | { type: 'addCustomFood'; food: FoodItem }
+  | { type: 'updateCustomFood'; food: FoodItem }
+  | { type: 'upsertWeight'; entry: WeightEntry }
+  | { type: 'deleteWeight'; date: string }
+  | { type: 'replace'; data: AppData }
+  | { type: 'reset' };
+
 export const reducer = (data: AppData, action: DataAction): AppData => {
- switch (action.type) {
-  case 'setGoals': return { ...data, goals: action.goals };
-  case 'addEntry': return { ...data, entries: [action.entry, ...data.entries] };
-  case 'updateEntry': return { ...data, entries: data.entries.map((e) => e.id === action.entry.id ? action.entry : e) };
-  case 'deleteEntry': return { ...data, entries: data.entries.filter((e) => e.id !== action.id) };
-  case 'addCustomFood': return { ...data, customFoods: [action.food, ...data.customFoods] };
-  case 'updateCustomFood': return { ...data, customFoods: data.customFoods.map((f) => f.id === action.food.id ? action.food : f) };
-  case 'replace': return action.data;
-  case 'reset': return defaultData;
- }
+  switch (action.type) {
+    case 'setGoals':
+      return updateSyncMeta({ ...data, goals: action.goals }, 'pending');
+    case 'setProfile':
+      return updateSyncMeta({ ...data, userProfile: { ...data.userProfile, ...action.profile, updatedAt: new Date().toISOString() } }, 'pending');
+    case 'addEntry':
+      return updateSyncMeta({ ...data, entries: [markPending(action.entry), ...data.entries] }, 'pending');
+    case 'updateEntry':
+      return updateSyncMeta({ ...data, entries: data.entries.map((entry) => (entry.id === action.entry.id ? markPending(action.entry) : entry)) }, 'pending');
+    case 'deleteEntry':
+      return updateSyncMeta({ ...data, entries: data.entries.filter((entry) => entry.id !== action.id) }, 'pending');
+    case 'addCustomFood':
+      return updateSyncMeta({ ...data, customFoods: [markPending(action.food), ...data.customFoods] }, 'pending');
+    case 'updateCustomFood':
+      return updateSyncMeta({ ...data, customFoods: data.customFoods.map((food) => (food.id === action.food.id ? markPending(action.food) : food)) }, 'pending');
+    case 'upsertWeight':
+      return updateSyncMeta({
+        ...data,
+        weightEntries: [markPending({ ...action.entry, id: action.entry.localId ?? action.entry.date }), ...data.weightEntries.filter((entry) => entry.date !== action.entry.date)].sort((a, b) => b.date.localeCompare(a.date)),
+      }, 'pending');
+    case 'deleteWeight':
+      return updateSyncMeta({ ...data, weightEntries: data.weightEntries.filter((entry) => entry.date !== action.date) }, 'pending');
+    case 'replace':
+      return action.data;
+    case 'reset':
+      return defaultData;
+  }
 };

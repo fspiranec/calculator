@@ -63,7 +63,7 @@ const mergeData = (local: AppData, cloud: AppData): AppData => {
   [...cloud.entries, ...local.entries].forEach((entry) => entryMap.set(`${entry.localId ?? entry.id}-${entry.date}-${entry.name}`, newer(entryMap.get(`${entry.localId ?? entry.id}-${entry.date}-${entry.name}`), entry)!));
   const weightMap = new Map<string, WeightEntry>();
   [...cloud.weightEntries, ...local.weightEntries].forEach((entry) => weightMap.set(entry.date, newer(weightMap.get(entry.date), entry)!));
-  return { ...local, goals: local.goals ?? cloud.goals, userProfile: { ...cloud.userProfile, ...local.userProfile }, customFoods: [...foodMap.values()].filter((x) => !x.deletedAt), entries: [...entryMap.values()].filter((x) => !x.deletedAt), weightEntries: [...weightMap.values()].filter((x) => !x.deletedAt) };
+  return { ...local, goals: local.goals ?? cloud.goals, userProfile: { ...cloud.userProfile, ...local.userProfile }, customFoods: Array.from(foodMap.values()).filter((x) => !x.deletedAt), entries: Array.from(entryMap.values()).filter((x) => !x.deletedAt), weightEntries: Array.from(weightMap.values()).filter((x) => !x.deletedAt) };
 };
 
 export const uploadCloudData = async (userId: string, data: AppData): Promise<AppData> => {

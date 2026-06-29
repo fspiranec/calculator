@@ -48,7 +48,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!ready || !user) return;
     const handle = setTimeout(() => {
-      saveUserData(user.id, data).catch((saveError) => setSaveError(saveError instanceof Error ? saveError.message : 'Could not save Supabase data.'));
+      saveUserData(user.id, data).then(() => setSaveError('')).catch((saveError) => setSaveError(saveError instanceof Error ? saveError.message : 'Could not save Supabase data.'));
     }, 500);
     return () => clearTimeout(handle);
   }, [data, ready, user]);

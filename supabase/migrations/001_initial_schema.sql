@@ -11,8 +11,9 @@ $$;
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
+  full_name text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.user_goals (
@@ -22,8 +23,8 @@ create table if not exists public.user_goals (
   protein_goal numeric not null,
   carbs_goal numeric not null,
   fat_goal numeric not null,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   unique(user_id)
 );
 
@@ -34,37 +35,33 @@ create table if not exists public.user_profile_settings (
   age integer,
   height_cm numeric,
   activity_level text,
-  goal text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
+  fitness_goal text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   unique(user_id)
 );
 
 create table if not exists public.custom_foods (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  local_id text,
   name text not null,
   category text,
-  serving_type text not null,
+  serving_type text not null check (serving_type in ('per100g', 'perPiece')),
   default_serving_grams numeric,
   calories numeric not null,
   protein numeric not null,
   carbs numeric not null,
   fat numeric not null,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
-  deleted_at timestamptz,
-  unique(user_id, local_id)
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.food_entries (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  local_id text,
   date date not null,
-  meal_type text not null,
-  food_id text,
+  meal_type text not null check (meal_type in ('breakfast', 'lunch', 'dinner', 'snack', 'other')),
+  food_id uuid,
   food_name text not null,
   quantity numeric,
   quantity_unit text,
@@ -72,41 +69,41 @@ create table if not exists public.food_entries (
   protein numeric not null,
   carbs numeric not null,
   fat numeric not null,
-  source text not null,
+  source text not null check (source in ('predefined', 'custom', 'manual')),
   note text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
-  deleted_at timestamptz,
-  unique(user_id, local_id)
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create table if not exists public.weight_entries (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  local_id text,
   date date not null,
   weight_kg numeric not null,
   note text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
-  deleted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   unique(user_id, date)
 );
 
-create table if not exists public.sync_metadata (
+create table if not exists public.predefined_foods (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  last_sync_at timestamptz,
-  device_id text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
-  unique(user_id, device_id)
+  name text not null,
+  category text,
+  serving_type text not null check (serving_type in ('per100g', 'perPiece')),
+  default_serving_grams numeric,
+  calories numeric not null,
+  protein numeric not null,
+  carbs numeric not null,
+  fat numeric not null,
+  created_at timestamptz not null default now(),
+  unique(name)
 );
 
 do $$
 declare table_name text;
 begin
-  foreach table_name in array array['profiles','user_goals','user_profile_settings','custom_foods','food_entries','weight_entries','sync_metadata'] loop
+  foreach table_name in array array['profiles','user_goals','user_profile_settings','custom_foods','food_entries','weight_entries','predefined_foods'] loop
     execute format('alter table public.%I enable row level security', table_name);
     execute format('drop trigger if exists set_%I_updated_at on public.%I', table_name, table_name);
     execute format('create trigger set_%I_updated_at before update on public.%I for each row execute function public.set_updated_at()', table_name, table_name);
@@ -143,7 +140,8 @@ create policy "weight_entries insert own" on public.weight_entries for insert wi
 create policy "weight_entries update own" on public.weight_entries for update using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "weight_entries delete own" on public.weight_entries for delete using (user_id = auth.uid());
 
-create policy "sync_metadata select own" on public.sync_metadata for select using (user_id = auth.uid());
-create policy "sync_metadata insert own" on public.sync_metadata for insert with check (user_id = auth.uid());
-create policy "sync_metadata update own" on public.sync_metadata for update using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "sync_metadata delete own" on public.sync_metadata for delete using (user_id = auth.uid());
+create policy "predefined foods readable" on public.predefined_foods for select to authenticated using (true);
+
+insert into public.predefined_foods (name, category, serving_type, default_serving_grams, calories, protein, carbs, fat) values
+('Boiled egg','Protein','perPiece',50,78,6.3,0.6,5.3),('Egg white','Protein','perPiece',33,17,3.6,0.2,0.1),('Low-fat cottage cheese / posni sir','Dairy','per100g',null,82,11,3.4,2.3),('Whey protein','Protein','per100g',null,400,80,8,6),('White rice cooked','Carbs','per100g',null,130,2.7,28.2,0.3),('Brown rice cooked','Carbs','per100g',null,112,2.6,23,0.9),('Pasta cooked','Carbs','per100g',null,158,5.8,30.9,0.9),('Chicken breast','Protein','per100g',null,165,31,0,3.6),('Turkey breast','Protein','per100g',null,135,29,0,1.5),('Lean beef / junetina','Protein','per100g',null,176,26,0,8),('Tuna in water','Protein','per100g',null,116,26,0,1),('Salmon','Protein','per100g',null,208,20,0,13),('Greek yogurt','Dairy','per100g',null,59,10,3.6,0.4),('Skyr','Dairy','per100g',null,63,11,4,0.2),('Cucumber','Vegetable','per100g',null,15,0.7,3.6,0.1),('Tomato','Vegetable','per100g',null,18,0.9,3.9,0.2),('Lettuce','Vegetable','per100g',null,15,1.4,2.9,0.2),('Mixed salad','Vegetable','per100g',null,20,1.1,4,0.2),('Green beans / mahune','Vegetable','per100g',null,35,1.9,7.9,0.3),('Broccoli','Vegetable','per100g',null,35,2.4,7.2,0.4),('Zucchini','Vegetable','per100g',null,17,1.2,3.1,0.3),('Potato cooked','Carbs','per100g',null,87,1.9,20.1,0.1),('Sweet potato','Carbs','per100g',null,86,1.6,20.1,0.1),('Oats','Carbs','per100g',null,389,16.9,66.3,6.9),('Banana','Fruit','per100g',null,89,1.1,22.8,0.3),('Apple','Fruit','per100g',null,52,0.3,13.8,0.2),('Olive oil','Fat','per100g',null,884,0,0,100),('Avocado','Fat','per100g',null,160,2,8.5,14.7)
+on conflict (name) do nothing;

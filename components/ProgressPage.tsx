@@ -8,6 +8,7 @@ import PeriodFilter from './PeriodFilter';
 import WeightChart from './WeightChart';
 import BmiCalculator from './BmiCalculator';
 import CalorieNeedsCalculator from './CalorieNeedsCalculator';
+import WeightGoalPlanner from './WeightGoalPlanner';
 
 const format = (value: number | null | undefined, suffix = ' kg') => (typeof value === 'number' ? `${value.toFixed(1)}${suffix}` : '—');
 const change = (value: number | null) => (typeof value === 'number' ? `${value >= 0 ? '+' : ''}${value.toFixed(1)} kg` : '—');
@@ -39,6 +40,7 @@ export default function ProgressPage({ data, selectedDate, dispatch }: { data: A
       </section>
       <PeriodFilter range={range} onChange={setRange} error={rangeError} />
       <WeightChart entries={periodEntries} />
+      <WeightGoalPlanner entries={data.weightEntries} />
       <BmiCalculator latestWeightKg={latest?.weightKg} heightCm={data.userProfile.heightCm} />
       <CalorieNeedsCalculator latestWeightKg={latest?.weightKg} profile={data.userProfile} onProfile={setProfile} onApplyGoals={applyGoals} />
     </div>

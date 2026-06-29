@@ -101,6 +101,18 @@ All user-owned cloud tables have Row Level Security policies so users can only a
 
 The browser client uses `@supabase/ssr` `createBrowserClient` so Supabase writes auth cookies that the middleware can read. If login appears to do nothing after deployment, clear old site cookies/local storage, redeploy, then try again. Also confirm Email/Password auth is enabled and, if email confirmations are required, confirm the user email before logging in.
 
+
+### Schema cache error for `fitness_goal`
+
+If Supabase returns `PGRST204` saying it cannot find `fitness_goal`, your existing `user_profile_settings` table was created by an earlier migration. Run the latest migration again, or at minimum run:
+
+```sql
+alter table public.user_profile_settings add column if not exists goal text;
+alter table public.user_profile_settings add column if not exists fitness_goal text;
+```
+
+Then wait a few seconds or reload the Supabase API/schema cache by redeploying/retrying the app. The app writes to the backward-compatible `goal` column and can read either `goal` or `fitness_goal`.
+
 ### Auth and data behavior
 
 Opening `/` redirects to `/dashboard`, and protected dashboard routes redirect unauthenticated users to `/login`. Signup/login uses Supabase Auth. The dashboard loads the authenticated user’s goals, custom foods, food entries and weight entries from Supabase, then writes changes back to user-owned rows using the authenticated user id.

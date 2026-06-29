@@ -85,6 +85,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-full-publishable-anon-key
 7. Deploy to Vercel.
 8. Test signup, login, sync, logout, and restore in a second browser.
 
+
+### Running the SQL migration correctly
+
+In Supabase SQL Editor, paste only the raw SQL from `supabase/migrations/001_initial_schema.sql`. Do **not** paste a GitHub diff or patch. If the first line starts with `diff --git`, `---`, `+++`, or `@@`, it is not valid SQL and Supabase will throw `syntax error at or near "diff"`. Use GitHub's **Raw** view or copy the file contents from your editor. The first line should be:
+
+```sql
+create extension if not exists pgcrypto;
+```
+
 All user-owned cloud tables have Row Level Security policies so users can only access rows where `user_id = auth.uid()`; `profiles` rows are restricted by `id = auth.uid()`. Clearing browser data does not delete Supabase data; logging in again restores the account data from the cloud database.
 
 ### Auth and data behavior

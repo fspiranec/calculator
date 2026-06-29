@@ -72,16 +72,16 @@ Clean Macro Tracker is local-first. Without login, all data stays in IndexedDB o
 
 1. Create a Supabase project.
 2. Copy the Project URL and anon public key from **Project Settings → API**. Never use the service role key in the browser.
-3. Add `.env.local`:
+3. Add `.env.local` using the Supabase **Project URL** and the full **Publishable / anon** key. Do not use the REST API URL ending in `/rest/v1/`, and never paste a secret/service-role key into frontend env vars. This project includes `.env.example` with the provided project URL:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_URL=https://sijwbahfnmakitnrrkzd.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-full-publishable-anon-key
 ```
 
-4. Open the Supabase SQL editor and run `supabase/migrations/001_initial_schema.sql`.
+4. Open the Supabase SQL editor and run `supabase/migrations/001_initial_schema.sql` to create the database tables, constraints, triggers, and RLS policies.
 5. Enable email/password auth in Supabase Auth settings.
-6. Add the same two environment variables in Vercel Project Settings.
+6. Add the same two environment variables in Vercel Project Settings: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 7. Deploy to Vercel.
 8. Test signup, login, sync, logout, and restore in a second browser.
 

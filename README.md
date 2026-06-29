@@ -79,7 +79,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://sijwbahfnmakitnrrkzd.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpandiYWhmbm1ha2l0bnJya3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MDQzOTMsImV4cCI6MjA5ODI4MDM5M30.bdcNa3bXwo9YJywIK0w1ruUZl4ygU-1BbeYVZztEwDQ
 ```
 
-4. Open the Supabase SQL editor and run `supabase/migrations/001_initial_schema.sql` to create the database tables, constraints, triggers, and RLS policies.
+4. Open the Supabase SQL editor and run `supabase/clean_macro_tracker_full_setup.sql` (recommended) or `supabase/migrations/001_initial_schema.sql` to create the database tables, constraints, triggers, RLS policies, profile signup trigger, and predefined foods.
 5. Enable email/password auth in Supabase Auth settings.
 6. Add the same two environment variables in Vercel Project Settings: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 7. Deploy to Vercel.
@@ -88,7 +88,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 
 ### Running the SQL migration correctly
 
-In Supabase SQL Editor, paste only the raw SQL from `supabase/migrations/001_initial_schema.sql`. Do **not** paste a GitHub diff or patch. If the first line starts with `diff --git`, `---`, `+++`, or `@@`, it is not valid SQL and Supabase will throw `syntax error at or near "diff"`. If Supabase reports a syntax error on a column name, re-copy the raw file because rendered line numbers or a missing comma from a partial copy can corrupt SQL. Use GitHub's **Raw** view or copy the file contents from your editor. The first line should be:
+In Supabase SQL Editor, paste only the raw SQL from `supabase/clean_macro_tracker_full_setup.sql` or `supabase/migrations/001_initial_schema.sql`. Do **not** paste a GitHub diff or patch. If the first line starts with `diff --git`, `---`, `+++`, or `@@`, it is not valid SQL and Supabase will throw `syntax error at or near "diff"`. If Supabase reports a syntax error on a column name, re-copy the raw file because rendered line numbers or a missing comma from a partial copy can corrupt SQL. Use GitHub's **Raw** view or copy the file contents from your editor. The first line should be:
 
 ```sql
 create extension if not exists pgcrypto;

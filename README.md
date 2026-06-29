@@ -72,11 +72,11 @@ Clean Macro Tracker now requires login. Food entries, custom foods, goals, profi
 
 1. Create a Supabase project.
 2. Copy the Project URL and anon public key from **Project Settings → API**. Never use the service role key in the browser.
-3. Add `.env.local` using the Supabase **Project URL** and the full **Publishable / anon** key. Do not use the REST API URL ending in `/rest/v1/`, and never paste a secret/service-role key into frontend env vars. This project includes `.env.example` with the provided project URL:
+3. Add `.env.local` using the Supabase **Project URL** and the full **Publishable / anon** key. The repo includes your project defaults, but explicit env vars are still recommended for Vercel and local development. Do not use the REST API URL ending in `/rest/v1/`, and never paste a secret/service-role key into frontend env vars. This project includes `.env.example` with the provided project URL:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://sijwbahfnmakitnrrkzd.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-full-publishable-anon-key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpandiYWhmbm1ha2l0bnJya3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MDQzOTMsImV4cCI6MjA5ODI4MDM5M30.bdcNa3bXwo9YJywIK0w1ruUZl4ygU-1BbeYVZztEwDQ
 ```
 
 4. Open the Supabase SQL editor and run `supabase/migrations/001_initial_schema.sql` to create the database tables, constraints, triggers, and RLS policies.

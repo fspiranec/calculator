@@ -88,7 +88,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-full-publishable-anon-key
 
 ### Running the SQL migration correctly
 
-In Supabase SQL Editor, paste only the raw SQL from `supabase/migrations/001_initial_schema.sql`. Do **not** paste a GitHub diff or patch. If the first line starts with `diff --git`, `---`, `+++`, or `@@`, it is not valid SQL and Supabase will throw `syntax error at or near "diff"`. Use GitHub's **Raw** view or copy the file contents from your editor. The first line should be:
+In Supabase SQL Editor, paste only the raw SQL from `supabase/migrations/001_initial_schema.sql`. Do **not** paste a GitHub diff or patch. If the first line starts with `diff --git`, `---`, `+++`, or `@@`, it is not valid SQL and Supabase will throw `syntax error at or near "diff"`. If Supabase reports a syntax error on a column name, re-copy the raw file because rendered line numbers or a missing comma from a partial copy can corrupt SQL. Use GitHub's **Raw** view or copy the file contents from your editor. The first line should be:
 
 ```sql
 create extension if not exists pgcrypto;

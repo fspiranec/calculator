@@ -15,7 +15,7 @@ const change = (value: number | null) => (typeof value === 'number' ? `${value >
 
 export default function ProgressPage({ data, selectedDate, dispatch }: { data: AppData; selectedDate: string; dispatch: Dispatch<any> }) {
   const [range, setRange] = useState<PeriodRange>({ period: '30' });
-  const [calorieAdjustment, setCalorieAdjustment] = useState<number | undefined>();
+  const [calorieAdjustment, setCalorieAdjustment] = useState<number | undefined>(data.userProfile.calorieAdjustment);
   const rangeError = range.period === 'custom' && range.startDate && range.endDate && range.startDate > range.endDate ? 'Start date must be before or equal to end date.' : '';
   const periodEntries = useMemo(() => (rangeError ? [] : filterWeightsByPeriod(data.weightEntries, range)), [data.weightEntries, range, rangeError]);
   const stats = weightStats(data.weightEntries, periodEntries);
@@ -41,7 +41,7 @@ export default function ProgressPage({ data, selectedDate, dispatch }: { data: A
       </section>
       <PeriodFilter range={range} onChange={setRange} error={rangeError} />
       <WeightChart entries={periodEntries} />
-      <WeightGoalPlanner entries={data.weightEntries} onApplyCalorieAdjustment={setCalorieAdjustment} />
+      <WeightGoalPlanner entries={data.weightEntries} onApplyCalorieAdjustment={(adjustment) => { setCalorieAdjustment(adjustment); setProfile({ calorieAdjustment: adjustment }); }} />
       <BmiCalculator latestWeightKg={latest?.weightKg} heightCm={data.userProfile.heightCm} />
       <CalorieNeedsCalculator latestWeightKg={latest?.weightKg} profile={data.userProfile} calorieAdjustment={calorieAdjustment} onProfile={setProfile} onApplyGoals={applyGoals} />
     </div>

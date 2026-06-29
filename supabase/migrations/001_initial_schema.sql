@@ -38,6 +38,7 @@ create table if not exists public.user_profile_settings (
   activity_level text,
   fitness_goal text,
   goal text,
+  calorie_adjustment integer,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique(user_id)
@@ -45,6 +46,7 @@ create table if not exists public.user_profile_settings (
 
 alter table public.user_profile_settings add column if not exists goal text;
 alter table public.user_profile_settings add column if not exists fitness_goal text;
+alter table public.user_profile_settings add column if not exists calorie_adjustment integer;
 
 create table if not exists public.custom_foods (
   id uuid primary key default gen_random_uuid(),

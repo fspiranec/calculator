@@ -60,6 +60,7 @@ export type UserProfile = {
   activityLevel?: ActivityLevel;
   goal?: CalorieGoal;
   updatedAt?: string;
+  calorieAdjustment?: number;
 };
 
 export type AppData = {

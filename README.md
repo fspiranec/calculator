@@ -96,6 +96,11 @@ create extension if not exists pgcrypto;
 
 All user-owned cloud tables have Row Level Security policies so users can only access rows where `user_id = auth.uid()`; `profiles` rows are restricted by `id = auth.uid()`. Clearing browser data does not delete Supabase data; logging in again restores the account data from the cloud database.
 
+
+### Login redirects back to login
+
+The browser client uses `@supabase/ssr` `createBrowserClient` so Supabase writes auth cookies that the middleware can read. If login appears to do nothing after deployment, clear old site cookies/local storage, redeploy, then try again. Also confirm Email/Password auth is enabled and, if email confirmations are required, confirm the user email before logging in.
+
 ### Auth and data behavior
 
 Opening `/` redirects to `/dashboard`, and protected dashboard routes redirect unauthenticated users to `/login`. Signup/login uses Supabase Auth. The dashboard loads the authenticated user’s goals, custom foods, food entries and weight entries from Supabase, then writes changes back to user-owned rows using the authenticated user id.

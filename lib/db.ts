@@ -12,6 +12,7 @@ export const defaultData: AppData = {
   customFoods: [],
   entries: [],
   weightEntries: [],
+  syncMetadata: { deviceId: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `device-${Date.now()}`, status: 'local-only', pendingChanges: 0 },
 };
 
 const normalizeData = (value: Partial<AppData> | null | undefined): AppData => ({
@@ -21,6 +22,7 @@ const normalizeData = (value: Partial<AppData> | null | undefined): AppData => (
   customFoods: value?.customFoods ?? [],
   entries: value?.entries ?? [],
   weightEntries: value?.weightEntries ?? [],
+  syncMetadata: value?.syncMetadata ?? defaultData.syncMetadata,
 });
 
 const openDatabase = () =>

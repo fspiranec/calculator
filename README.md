@@ -17,7 +17,7 @@ Clean Macro Tracker is a fast, mobile-first calorie, macro, weight, and progress
 - BMI calculator that can use latest recorded weight
 - Calorie Needs calculator with Mifflin-St Jeor BMR/TDEE and target macro recommendations
 - Export backup, Import backup, Reset all data, and Storage info controls
-- No login, no backend, and no fake cloud service
+- Optional Supabase email/password login for cloud sync; local-only mode remains fully supported
 
 ## Tech stack
 
@@ -63,20 +63,48 @@ git push -u origin main
 4. Keep the default Next.js settings. This repo also includes `vercel.json` to force the Next.js framework preset and `.next` output directory, which prevents static-site output directory mistakes such as looking for `public` after build.
 5. Click **Deploy**.
 
+
+## Optional Supabase cloud sync
+
+Clean Macro Tracker is local-first. Without login, all data stays in IndexedDB on this browser/device and the app can work offline after it has loaded. Login is optional. With login, food entries, custom foods, goals, profile settings, and weight entries can sync to Supabase so the same account can restore data on another browser/device. Export/import backup remains available in both modes.
+
+### Supabase setup
+
+1. Create a Supabase project.
+2. Copy the Project URL and anon public key from **Project Settings → API**. Never use the service role key in the browser.
+3. Add `.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+4. Open the Supabase SQL editor and run `supabase/migrations/001_initial_schema.sql`.
+5. Enable email/password auth in Supabase Auth settings.
+6. Add the same two environment variables in Vercel Project Settings.
+7. Deploy to Vercel.
+8. Test signup, login, sync, logout, and restore in a second browser.
+
+All user-owned cloud tables have Row Level Security policies so users can only access rows where `user_id = auth.uid()`; `profiles` rows are restricted by `id = auth.uid()`. Clearing browser data can delete local IndexedDB data, but synced cloud data remains available after logging in again.
+
+### Sync behavior
+
+After login, choose one sync decision: merge local data with cloud data (recommended), replace local data with cloud data, upload local data to cloud, or keep using local only. Local IndexedDB remains the immediate source of UI state. New edits are saved locally first and marked pending; manual **Sync now** uploads/downloads data when Supabase is reachable. If a conflict cannot be safely resolved, the app prefers keeping data rather than silently deleting records.
+
 ## Backup format
 
-Exports contain one JSON object with `version`, `exportedAt`, `goals`, `userProfile`, `customFoods`, `foodEntries`, and `weightEntries`.
+Exports contain one JSON object with `version`, `exportedAt`, `source`, `goals`, `userProfile`, `customFoods`, `foodEntries`, `weightEntries`, and `syncMetadata`.
 
 ## Limitations
 
 - Data is saved only in the current device/browser using IndexedDB.
-- There is no account system and no cloud sync in this MVP.
+- Cloud sync is optional and requires Supabase environment variables plus the SQL migration.
 - Data can be removed if the user clears browser/site data, uses private browsing, changes device/browser, or resets the app.
 - Nutrition values are approximate starter values and should be edited or replaced with brand-specific values when needed.
 
 ## Future features
 
-- Login and cloud sync with Supabase
+- Deeper cloud conflict review UI
 - Barcode scanner
 - AI photo meal recognition
 - Weekly reports

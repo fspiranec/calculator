@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AppData, Goals } from '@/types';
 import CustomFoodForm from './CustomFoodForm';
 import DataSettings from './DataSettings';
+import SyncSettings from './SyncSettings';
 
 export default function Settings({ data, onGoals, onCustomFood, onImport, onReset }: { data: AppData; onGoals: (goals: Goals) => void; onCustomFood: (food: any) => void; onImport: (data: AppData) => void; onReset: () => void }) {
   const [goals, setGoals] = useState(data.goals ?? { calories: 2000, protein: 150, carbs: 200, fat: 60 });
@@ -21,6 +22,7 @@ export default function Settings({ data, onGoals, onCustomFood, onImport, onRese
         <button className="w-full rounded-2xl bg-clean-600 p-3 font-bold text-white" onClick={() => Object.values(goals).some((value) => value <= 0) ? setError('Goals must be greater than 0.') : onGoals(goals)}>Save goals</button>
       </section>
       <section className="rounded-3xl bg-white p-5 shadow-soft"><h2 className="mb-3 text-xl font-bold">Create custom food</h2><CustomFoodForm onSave={onCustomFood} /></section>
+      <SyncSettings data={data} onData={onImport} onResetLocal={onReset} />
       <DataSettings data={data} onImport={onImport} onReset={onReset} />
     </div>
   );

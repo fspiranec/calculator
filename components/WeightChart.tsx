@@ -5,8 +5,11 @@ import { WeightEntry } from '@/types';
 import { withMovingAverage } from '@/lib/weight';
 
 type ChartPoint = WeightEntry & { label: string; movingAverage?: number };
+type ChartTooltipItem = { dataKey?: string | number; value?: number | string; payload?: ChartPoint };
 
-const renderTooltip = ({ active, payload }: any) => {
+const renderTooltip = (tooltipProps: any) => {
+  const active = Boolean(tooltipProps.active);
+  const payload = tooltipProps.payload as ChartTooltipItem[] | undefined;
   if (!active || !payload?.length) return null;
   const point = payload[0]?.payload;
   if (!point) return null;
@@ -15,7 +18,7 @@ const renderTooltip = ({ active, payload }: any) => {
     <div className="rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-soft">
       <p className="font-bold text-slate-900">{point.date}</p>
       {point.note ? <p className="text-slate-500">{point.note}</p> : null}
-      {payload.map((item) => (
+      {payload.map((item: ChartTooltipItem) => (
         <p key={item.dataKey} className="text-slate-700">
           {item.dataKey === 'movingAverage' ? '7-day average' : 'Weight'}: <b>{Number(item.value).toFixed(1)} kg</b>
         </p>
